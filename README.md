@@ -1,46 +1,52 @@
 # Savings Tracker
 
-A cross-platform desktop app for tracking income, expenses, an automatic
-savings rule, and named savings goals. Built with Tauri, React, TypeScript,
-Tailwind CSS, SQLite, and Recharts.
+A cross-platform desktop app for tracking income and expenses, automatically
+setting aside a percentage of income into savings, and working toward named
+savings goals.
 
-## Stack
+## What it does
 
-- **Backend**: Rust (Tauri 2)
-- **Frontend**: React + TypeScript + Tailwind CSS v4
-- **Storage**: SQLite via `tauri-plugin-sql`, stored in the app's local data
-  directory as `savings-tracker.db`. Schema is applied automatically on first
-  launch via the migration in `src-tauri/migrations/001_initial.sql`.
-- **Charts**: Recharts (monthly breakdown donut, savings-rate trend line)
+- **Income** — log payments with a source, category, and amount
+- **Expenses** — track fixed and one-off costs, marked recurring or one-time
+- **Savings rule** — set a percentage of income to auto-allocate to savings
+- **Goals** — create named goals with a target amount and track progress
+- **Dashboard** — current month's income, expenses, savings, and leftover
+  discretionary spend, broken down in a donut chart
+- **History** — past months side by side, with a savings-rate trend line
 
-## Project layout
+## Tech Stack
 
-```
-src/
-  types/          shared TS types (IncomeEntry, Expense, Goal, Settings, MonthSummary)
-  lib/            db singleton, SEK/date formatting, theme hook, month-summary math
-  components/     Card, Modal, Sidebar, ThemeToggle, StatTile, shared form styles
-  features/
-    income/       income entry form, list, CRUD API
-    expenses/     expense form, list (recurring/one-time), CRUD API
-    goals/        goal form, progress cards, CRUD API
-    settings/     savings percentage setting
-    dashboard/    current-month overview + breakdown donut chart
-    history/      past months table + savings-rate trend line chart
-src-tauri/
-  migrations/     SQL migrations run by tauri-plugin-sql on startup
-  src/lib.rs      Tauri builder, plugin registration, migration list
-```
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white)
+![Tauri](https://img.shields.io/badge/tauri-%2324C8DB.svg?style=for-the-badge&logo=tauri&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=for-the-badge&logo=sqlite&logoColor=white)
+![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)
 
-Each feature folder owns its `api.ts` (SQL access) independently of the UI, so
-new features (multi-currency, budget alerts, recurring-income automation) can
-be added as new folders without touching existing ones.
+- **tauri-plugin-sql** — SQLite storage in the app's local data directory, schema applied via migrations on first launch
+- **Recharts** — the dashboard donut and savings-rate trend line
 
-## Development
+Each feature (income, expenses, goals, settings, dashboard, history) lives in
+its own folder under `src/features/` with its own `api.ts`, so new features
+(multi-currency, budget alerts, recurring-income automation) can be added
+without touching the others.
 
-Prerequisites: Node.js, Rust/Cargo, and the Tauri OS prerequisites
-(https://tauri.app/start/prerequisites/) — on Linux this includes
-`webkit2gtk-4.1` and friends.
+## Database
+
+| Table | Purpose |
+|---|---|
+| `income_entries` | date, source, category (salary/csn/freelance/gear_sale/other), amount |
+| `expenses` | name, amount, recurring flag, date |
+| `goals` | name, target amount, current amount, created date |
+| `settings` | savings percentage applied to income |
+
+All amounts are SEK, formatted as `9 500 kr` via `Intl.NumberFormat("sv-SE", ...)`.
+
+## Getting started
+
+Requires Node.js, Rust/Cargo, and the [Tauri prerequisites](https://tauri.app/start/prerequisites/)
+for your OS (on Linux, that includes `webkit2gtk-4.1`).
 
 ```bash
 npm install
@@ -50,27 +56,11 @@ npm run tauri dev
 ## Building installers
 
 ```bash
-# Current platform (produces the platform-native bundle types below)
 npm run tauri build
 ```
 
-- **Linux** → `.deb` and `.AppImage` in `src-tauri/target/release/bundle/`
-- **Windows** → `.msi` and `.exe` (NSIS) in `src-tauri\target\release\bundle\` (build on/for Windows)
-- **macOS** → `.app` and `.dmg` in `src-tauri/target/release/bundle/` (build on/for macOS)
-
-Tauri only cross-compiles installers for the OS it runs on, so producing all
-three requires running `npm run tauri build` on a machine (or CI runner) of
-each target OS. `tauri.conf.json` has `bundle.targets` set to `"all"`, so each
-platform's native installer types are produced automatically.
-
-## Data model
-
-| Table            | Columns |
-|-------------------|---------|
-| `income_entries`   | id, date, source, category (salary/csn/freelance/gear_sale/other), amount |
-| `expenses`         | id, name, amount, recurring, date |
-| `goals`            | id, name, target_amount, current_amount, created_date |
-| `settings`         | id (always 1), savings_percentage |
-
-All monetary values are stored as `REAL` (SEK) and formatted as `9 500 kr` in
-the UI via `Intl.NumberFormat("sv-SE", ...)`.
+Produces the native installer for whatever OS you run it on — `.deb`/`.AppImage`
+on Linux, `.msi`/NSIS `.exe` on Windows, `.app`/`.dmg` on macOS — all under
+`src-tauri/target/release/bundle/`. Tauri doesn't cross-compile installers, so
+building for all three platforms means running this on a machine (or CI
+runner) of each.
