@@ -45,6 +45,13 @@ export type NewGoal = Omit<Goal, "id" | "current_amount"> & {
   current_amount?: number;
 };
 
+export interface GoalContribution {
+  id: number;
+  goal_id: number;
+  amount: number;
+  date: string; // ISO yyyy-mm-dd
+}
+
 export interface Settings {
   id: 1;
   savings_percentage: number;

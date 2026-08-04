@@ -1,5 +1,5 @@
 import { getDb } from "../../lib/db";
-import type { Goal, NewGoal } from "../../types";
+import type { Goal, GoalContribution, NewGoal } from "../../types";
 
 export async function listGoals(): Promise<Goal[]> {
   const db = await getDb();
@@ -27,4 +27,23 @@ export async function updateGoal(goal: Goal): Promise<void> {
 export async function deleteGoal(id: number): Promise<void> {
   const db = await getDb();
   await db.execute("DELETE FROM goals WHERE id = $1", [id]);
+}
+
+export async function listContributions(): Promise<GoalContribution[]> {
+  const db = await getDb();
+  return db.select<GoalContribution[]>(
+    "SELECT id, goal_id, amount, date FROM goal_contributions ORDER BY date DESC, id DESC",
+  );
+}
+
+export async function createContribution(
+  goalId: number,
+  amount: number,
+  date: string,
+): Promise<void> {
+  const db = await getDb();
+  await db.execute(
+    "INSERT INTO goal_contributions (goal_id, amount, date) VALUES ($1, $2, $3)",
+    [goalId, amount, date],
+  );
 }

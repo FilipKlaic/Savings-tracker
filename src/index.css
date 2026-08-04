@@ -18,6 +18,7 @@
   --series-2: #eb6834; /* expenses */
   --series-3: #1baf7a; /* discretionary */
   --status-good: #0ca30c;
+  --status-critical: #d03b3b;
 }
 
 :root.dark {
@@ -32,6 +33,7 @@
   --series-2: #d95926;
   --series-3: #199e70;
   --status-good: #0ca30c;
+  --status-critical: #e66767;
 }
 
 html,

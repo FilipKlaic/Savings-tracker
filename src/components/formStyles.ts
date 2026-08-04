@@ -13,5 +13,9 @@ export const secondaryButtonClass =
 export const dangerTextClass =
   "text-sm font-medium text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300";
 
+export const dangerButtonClass =
+  "rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:opacity-90";
+export const dangerButtonStyle = { backgroundColor: "var(--status-critical)" };
+
 export const iconButtonClass =
   "rounded-lg p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200";

@@ -1,10 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Expense, NewExpense } from "../../types";
 import { Card } from "../../components/Card";
 import { Modal } from "../../components/Modal";
-import { primaryButtonClass, dangerTextClass } from "../../components/formStyles";
-import { formatSEK } from "../../lib/format";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
+import {
+  primaryButtonClass,
+  secondaryButtonClass,
+  dangerTextClass,
+  inputClass,
+} from "../../components/formStyles";
+import { formatMonthLabel, formatSEK, monthKeyOf } from "../../lib/format";
 import { ExpenseForm } from "./ExpenseForm";
+import { getCarryOverCandidates, toCarryOverInput } from "./carryOver";
 import {
   createExpense,
   deleteExpense,
@@ -16,6 +23,10 @@ export function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalMode, setModalMode] = useState<"add" | Expense | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Expense | null>(null);
+  const [monthFilter, setMonthFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [carryingOver, setCarryingOver] = useState(false);
 
   async function refresh() {
     setExpenses(await listExpenses());
@@ -35,10 +46,50 @@ export function ExpensesPage() {
     await refresh();
   }
 
-  async function handleDelete(id: number) {
-    await deleteExpense(id);
+  async function handleDelete() {
+    if (!pendingDelete) return;
+    await deleteExpense(pendingDelete.id);
+    setPendingDelete(null);
     await refresh();
   }
+
+  const carryOverCandidates = useMemo(
+    () => getCarryOverCandidates(expenses),
+    [expenses],
+  );
+
+  async function handleCarryOverAll() {
+    setCarryingOver(true);
+    try {
+      for (const candidate of carryOverCandidates) {
+        await createExpense(toCarryOverInput(candidate));
+      }
+      await refresh();
+    } finally {
+      setCarryingOver(false);
+    }
+  }
+
+  const months = useMemo(
+    () =>
+      Array.from(new Set(expenses.map((e) => monthKeyOf(e.date)))).sort((a, b) =>
+        b.localeCompare(a),
+      ),
+    [expenses],
+  );
+
+  const filteredExpenses = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return expenses.filter((expense) => {
+      if (monthFilter !== "all" && monthKeyOf(expense.date) !== monthFilter) {
+        return false;
+      }
+      if (query && !expense.name.toLowerCase().includes(query)) {
+        return false;
+      }
+      return true;
+    });
+  }, [expenses, monthFilter, search]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -54,11 +105,58 @@ export function ExpensesPage() {
         </button>
       </div>
 
+      {carryOverCandidates.length > 0 && (
+        <Card className="border-neutral-300 dark:border-neutral-700">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-neutral-600 dark:text-neutral-300">
+              You have {carryOverCandidates.length} recurring expense
+              {carryOverCandidates.length === 1 ? "" : "s"} not yet added this
+              month:{" "}
+              <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                {carryOverCandidates.map((c) => c.name).join(", ")}
+              </span>
+            </p>
+            <button
+              className={secondaryButtonClass}
+              onClick={handleCarryOverAll}
+              disabled={carryingOver}
+            >
+              Add to this month
+            </button>
+          </div>
+        </Card>
+      )}
+
+      {expenses.length > 0 && (
+        <div className="flex flex-wrap gap-3">
+          <input
+            className={`${inputClass} max-w-xs`}
+            placeholder="Search by name…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <select
+            className={`${inputClass} w-auto`}
+            value={monthFilter}
+            onChange={(e) => setMonthFilter(e.target.value)}
+          >
+            <option value="all">All time</option>
+            {months.map((month) => (
+              <option key={month} value={month}>
+                {formatMonthLabel(month)}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <Card>
         {loading ? (
           <p className="text-sm text-neutral-400">Loading…</p>
         ) : expenses.length === 0 ? (
           <p className="text-sm text-neutral-400">No expenses recorded yet.</p>
+        ) : filteredExpenses.length === 0 ? (
+          <p className="text-sm text-neutral-400">No expenses match your filters.</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
@@ -71,7 +169,7 @@ export function ExpensesPage() {
               </tr>
             </thead>
             <tbody>
-              {expenses.map((expense) => (
+              {filteredExpenses.map((expense) => (
                 <tr
                   key={expense.id}
                   className="border-b border-neutral-100 last:border-0 dark:border-neutral-800/60"
@@ -104,7 +202,7 @@ export function ExpensesPage() {
                       </button>
                       <button
                         className={dangerTextClass}
-                        onClick={() => handleDelete(expense.id)}
+                        onClick={() => setPendingDelete(expense)}
                       >
                         Delete
                       </button>
@@ -128,6 +226,15 @@ export function ExpensesPage() {
             onCancel={() => setModalMode(null)}
           />
         </Modal>
+      )}
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Delete expense"
+          message={`Delete "${pendingDelete.name}" (${formatSEK(pendingDelete.amount)})? This can't be undone.`}
+          onConfirm={handleDelete}
+          onCancel={() => setPendingDelete(null)}
+        />
       )}
     </div>
   );

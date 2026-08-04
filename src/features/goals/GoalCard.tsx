@@ -1,15 +1,16 @@
 import type { Goal } from "../../types";
 import { Card } from "../../components/Card";
-import { dangerTextClass } from "../../components/formStyles";
+import { dangerTextClass, secondaryButtonClass } from "../../components/formStyles";
 import { formatSEK } from "../../lib/format";
 
 interface GoalCardProps {
   goal: Goal;
   onEdit: () => void;
   onDelete: () => void;
+  onContribute: () => void;
 }
 
-export function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
+export function GoalCard({ goal, onEdit, onDelete, onContribute }: GoalCardProps) {
   const progress = goal.target_amount > 0
     ? Math.min(100, (goal.current_amount / goal.target_amount) * 100)
     : 0;
@@ -61,6 +62,13 @@ export function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
           {complete ? "Goal reached" : `${Math.round(progress)}% funded`}
         </p>
       </div>
+
+      <button
+        className={`${secondaryButtonClass} mt-4 w-full`}
+        onClick={onContribute}
+      >
+        Contribute
+      </button>
     </Card>
   );
 }

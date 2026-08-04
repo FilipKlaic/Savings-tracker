@@ -1,10 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { IncomeEntry, NewIncomeEntry } from "../../types";
 import { INCOME_CATEGORIES } from "../../types";
 import { Card } from "../../components/Card";
 import { Modal } from "../../components/Modal";
-import { primaryButtonClass, dangerTextClass } from "../../components/formStyles";
-import { formatSEK } from "../../lib/format";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
+import {
+  primaryButtonClass,
+  dangerTextClass,
+  inputClass,
+} from "../../components/formStyles";
+import { formatMonthLabel, formatSEK, monthKeyOf } from "../../lib/format";
 import { IncomeForm } from "./IncomeForm";
 import {
   createIncomeEntry,
@@ -21,6 +26,9 @@ export function IncomePage() {
   const [entries, setEntries] = useState<IncomeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalMode, setModalMode] = useState<"add" | IncomeEntry | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<IncomeEntry | null>(null);
+  const [monthFilter, setMonthFilter] = useState("all");
+  const [search, setSearch] = useState("");
 
   async function refresh() {
     setEntries(await listIncomeEntries());
@@ -40,10 +48,33 @@ export function IncomePage() {
     await refresh();
   }
 
-  async function handleDelete(id: number) {
-    await deleteIncomeEntry(id);
+  async function handleDelete() {
+    if (!pendingDelete) return;
+    await deleteIncomeEntry(pendingDelete.id);
+    setPendingDelete(null);
     await refresh();
   }
+
+  const months = useMemo(
+    () =>
+      Array.from(new Set(entries.map((e) => monthKeyOf(e.date)))).sort((a, b) =>
+        b.localeCompare(a),
+      ),
+    [entries],
+  );
+
+  const filteredEntries = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return entries.filter((entry) => {
+      if (monthFilter !== "all" && monthKeyOf(entry.date) !== monthFilter) {
+        return false;
+      }
+      if (query && !entry.source.toLowerCase().includes(query)) {
+        return false;
+      }
+      return true;
+    });
+  }, [entries, monthFilter, search]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -59,11 +90,36 @@ export function IncomePage() {
         </button>
       </div>
 
+      {entries.length > 0 && (
+        <div className="flex flex-wrap gap-3">
+          <input
+            className={`${inputClass} max-w-xs`}
+            placeholder="Search by source…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <select
+            className={`${inputClass} w-auto`}
+            value={monthFilter}
+            onChange={(e) => setMonthFilter(e.target.value)}
+          >
+            <option value="all">All time</option>
+            {months.map((month) => (
+              <option key={month} value={month}>
+                {formatMonthLabel(month)}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <Card>
         {loading ? (
           <p className="text-sm text-neutral-400">Loading…</p>
         ) : entries.length === 0 ? (
           <p className="text-sm text-neutral-400">No income entries yet.</p>
+        ) : filteredEntries.length === 0 ? (
+          <p className="text-sm text-neutral-400">No income entries match your filters.</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
@@ -76,7 +132,7 @@ export function IncomePage() {
               </tr>
             </thead>
             <tbody>
-              {entries.map((entry) => (
+              {filteredEntries.map((entry) => (
                 <tr
                   key={entry.id}
                   className="border-b border-neutral-100 last:border-0 dark:border-neutral-800/60"
@@ -101,7 +157,7 @@ export function IncomePage() {
                       </button>
                       <button
                         className={dangerTextClass}
-                        onClick={() => handleDelete(entry.id)}
+                        onClick={() => setPendingDelete(entry)}
                       >
                         Delete
                       </button>
@@ -125,6 +181,15 @@ export function IncomePage() {
             onCancel={() => setModalMode(null)}
           />
         </Modal>
+      )}
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Delete income entry"
+          message={`Delete "${pendingDelete.source}" (${formatSEK(pendingDelete.amount)})? This can't be undone.`}
+          onConfirm={handleDelete}
+          onCancel={() => setPendingDelete(null)}
+        />
       )}
     </div>
   );
