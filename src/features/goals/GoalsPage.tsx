@@ -5,6 +5,7 @@ import { ConfirmDialog } from "../../components/ConfirmDialog";
 import { primaryButtonClass } from "../../components/formStyles";
 import { currentMonthKey, formatSEK, todayIso } from "../../lib/format";
 import { computeMonthSummary } from "../../lib/summary";
+import { useTranslation } from "../../lib/i18n";
 import { listIncomeEntries } from "../income/api";
 import { listExpenses } from "../expenses/api";
 import { getSettings } from "../settings/api";
@@ -29,6 +30,7 @@ export function GoalsPage() {
   const [pendingDelete, setPendingDelete] = useState<Goal | null>(null);
   const [contributingGoal, setContributingGoal] = useState<Goal | null>(null);
   const [savingsAllocation, setSavingsAllocation] = useState<number | null>(null);
+  const { t } = useTranslation();
 
   async function refresh() {
     const [goalRows, contributionRows] = await Promise.all([
@@ -65,7 +67,7 @@ export function GoalsPage() {
 
   async function handleSubmit(goal: NewGoal) {
     if (modalMode && modalMode !== "add") {
-      await updateGoal({ ...goal, id: modalMode.id, current_amount: goal.current_amount ?? 0 });
+      await updateGoal({ ...modalMode, ...goal });
     } else {
       await createGoal(goal);
     }
@@ -95,33 +97,31 @@ export function GoalsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Goals</h1>
+          <h1 className="text-2xl font-semibold">{t("goals.title")}</h1>
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            Save toward the things that matter.
+            {t("goals.subtitle")}
           </p>
         </div>
         <button className={primaryButtonClass} onClick={() => setModalMode("add")}>
-          + Add goal
+          {t("goals.addButton")}
         </button>
       </div>
 
       {savingsAllocation !== null && savingsAllocation > 0 && (
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          This month's savings allocation is {formatSEK(savingsAllocation)}
-          {contributedThisMonth > 0 && (
-            <>
-              {" "}
-              — {formatSEK(contributedThisMonth)} already contributed to goals,{" "}
-              {formatSEK(remainingAllocation ?? 0)} left to assign.
-            </>
-          )}
+          {t("goals.allocationText", { amount: formatSEK(savingsAllocation) })}
+          {contributedThisMonth > 0 &&
+            t("goals.allocationWithContrib", {
+              contributed: formatSEK(contributedThisMonth),
+              remaining: formatSEK(remainingAllocation ?? 0),
+            })}
         </p>
       )}
 
       {loading ? (
-        <p className="text-sm text-neutral-400">Loading…</p>
+        <p className="text-sm text-neutral-400">{t("common.loading")}</p>
       ) : goals.length === 0 ? (
-        <p className="text-sm text-neutral-400">No goals yet — create your first one.</p>
+        <p className="text-sm text-neutral-400">{t("goals.emptyNone")}</p>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {goals.map((goal) => (
@@ -138,7 +138,7 @@ export function GoalsPage() {
 
       {modalMode && (
         <Modal
-          title={modalMode === "add" ? "Create goal" : "Edit goal"}
+          title={modalMode === "add" ? t("goals.modalCreate") : t("goals.modalEdit")}
           onClose={() => setModalMode(null)}
         >
           <GoalForm
@@ -151,8 +151,8 @@ export function GoalsPage() {
 
       {pendingDelete && (
         <ConfirmDialog
-          title="Delete goal"
-          message={`Delete "${pendingDelete.name}"? This can't be undone.`}
+          title={t("goals.deleteTitle")}
+          message={t("goals.deleteMessage", { name: pendingDelete.name })}
           onConfirm={handleDelete}
           onCancel={() => setPendingDelete(null)}
         />
@@ -160,7 +160,7 @@ export function GoalsPage() {
 
       {contributingGoal && (
         <Modal
-          title={`Contribute to ${contributingGoal.name}`}
+          title={t("goals.contributeModalTitle", { name: contributingGoal.name })}
           onClose={() => setContributingGoal(null)}
         >
           <ContributeForm

@@ -6,11 +6,11 @@ export type NavKey =
   | "history"
   | "settings";
 
-export const NAV_ITEMS: { key: NavKey; label: string; icon: string }[] = [
-  { key: "dashboard", label: "Dashboard", icon: "◧" },
-  { key: "income", label: "Income", icon: "↑" },
-  { key: "expenses", label: "Expenses", icon: "↓" },
-  { key: "goals", label: "Goals", icon: "◎" },
-  { key: "history", label: "History", icon: "⏱" },
-  { key: "settings", label: "Settings", icon: "⚙" },
+export const NAV_ITEMS: { key: NavKey; icon: string }[] = [
+  { key: "dashboard", icon: "◧" },
+  { key: "income", icon: "↑" },
+  { key: "expenses", icon: "↓" },
+  { key: "goals", icon: "◎" },
+  { key: "history", icon: "⏱" },
+  { key: "settings", icon: "⚙" },
 ];

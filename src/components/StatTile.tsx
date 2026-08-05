@@ -1,10 +1,12 @@
 import { Card } from "./Card";
+import { InfoTooltip } from "./InfoTooltip";
 
 interface StatTileProps {
   label: string;
   value: string;
   accent?: "series-1" | "series-2" | "series-3";
   sublabel?: string;
+  info?: string;
 }
 
 const accentDot: Record<string, string> = {
@@ -13,7 +15,7 @@ const accentDot: Record<string, string> = {
   "series-3": "var(--series-3)",
 };
 
-export function StatTile({ label, value, accent, sublabel }: StatTileProps) {
+export function StatTile({ label, value, accent, sublabel, info }: StatTileProps) {
   return (
     <Card>
       <div className="flex items-center gap-2">
@@ -24,6 +26,7 @@ export function StatTile({ label, value, accent, sublabel }: StatTileProps) {
           />
         )}
         <p className="text-sm text-neutral-500 dark:text-neutral-400">{label}</p>
+        {info && <InfoTooltip text={info} />}
       </div>
       <p className="mt-2 text-3xl font-semibold tracking-tight">{value}</p>
       {sublabel && (

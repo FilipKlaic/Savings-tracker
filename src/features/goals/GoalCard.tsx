@@ -2,6 +2,7 @@ import type { Goal } from "../../types";
 import { Card } from "../../components/Card";
 import { dangerTextClass, secondaryButtonClass } from "../../components/formStyles";
 import { formatSEK } from "../../lib/format";
+import { useTranslation } from "../../lib/i18n";
 
 interface GoalCardProps {
   goal: Goal;
@@ -11,6 +12,7 @@ interface GoalCardProps {
 }
 
 export function GoalCard({ goal, onEdit, onDelete, onContribute }: GoalCardProps) {
+  const { t } = useTranslation();
   const progress = goal.target_amount > 0
     ? Math.min(100, (goal.current_amount / goal.target_amount) * 100)
     : 0;
@@ -22,7 +24,7 @@ export function GoalCard({ goal, onEdit, onDelete, onContribute }: GoalCardProps
         <div>
           <h3 className="font-semibold">{goal.name}</h3>
           <p className="text-xs text-neutral-400">
-            Started {goal.created_date}
+            {t("goals.started", { date: goal.created_date })}
           </p>
         </div>
         <div className="flex gap-3">
@@ -30,10 +32,10 @@ export function GoalCard({ goal, onEdit, onDelete, onContribute }: GoalCardProps
             className="text-sm text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
             onClick={onEdit}
           >
-            Edit
+            {t("common.edit")}
           </button>
           <button className={dangerTextClass} onClick={onDelete}>
-            Delete
+            {t("common.delete")}
           </button>
         </div>
       </div>
@@ -44,7 +46,7 @@ export function GoalCard({ goal, onEdit, onDelete, onContribute }: GoalCardProps
             {formatSEK(goal.current_amount)}
           </span>
           <span className="text-neutral-400">
-            of {formatSEK(goal.target_amount)}
+            {t("goals.ofTarget", { amount: formatSEK(goal.target_amount) })}
           </span>
         </div>
         <div className="h-2.5 w-full overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
@@ -59,7 +61,9 @@ export function GoalCard({ goal, onEdit, onDelete, onContribute }: GoalCardProps
           />
         </div>
         <p className="mt-1.5 text-xs text-neutral-400">
-          {complete ? "Goal reached" : `${Math.round(progress)}% funded`}
+          {complete
+            ? t("goals.goalReached")
+            : t("goals.percentFunded", { percent: Math.round(progress) })}
         </p>
       </div>
 
@@ -67,7 +71,7 @@ export function GoalCard({ goal, onEdit, onDelete, onContribute }: GoalCardProps
         className={`${secondaryButtonClass} mt-4 w-full`}
         onClick={onContribute}
       >
-        Contribute
+        {t("goals.contribute")}
       </button>
     </Card>
   );

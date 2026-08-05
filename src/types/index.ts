@@ -5,12 +5,12 @@ export type IncomeCategory =
   | "gear_sale"
   | "other";
 
-export const INCOME_CATEGORIES: { value: IncomeCategory; label: string }[] = [
-  { value: "salary", label: "Salary" },
-  { value: "csn", label: "CSN" },
-  { value: "freelance", label: "Freelance" },
-  { value: "gear_sale", label: "Gear sale" },
-  { value: "other", label: "Other" },
+export const INCOME_CATEGORY_VALUES: IncomeCategory[] = [
+  "salary",
+  "csn",
+  "freelance",
+  "gear_sale",
+  "other",
 ];
 
 export interface IncomeEntry {

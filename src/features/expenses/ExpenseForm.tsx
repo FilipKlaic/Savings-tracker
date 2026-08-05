@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import type { Expense, NewExpense } from "../../types";
 import { todayIso } from "../../lib/format";
+import { useTranslation } from "../../lib/i18n";
 import {
   inputClass,
   labelClass,
@@ -21,6 +22,7 @@ export function ExpenseForm({ initial, onSubmit, onCancel }: ExpenseFormProps) {
   const [recurring, setRecurring] = useState(initial?.recurring ?? true);
   const [date, setDate] = useState(initial?.date ?? todayIso());
   const [saving, setSaving] = useState(false);
+  const { t } = useTranslation();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -39,12 +41,12 @@ export function ExpenseForm({ initial, onSubmit, onCancel }: ExpenseFormProps) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div>
-        <label className={labelClass}>Name</label>
+        <label className={labelClass}>{t("expenses.formName")}</label>
         <input
           className={inputClass}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Rent"
+          placeholder={t("expenses.formNamePlaceholder")}
           autoFocus
           required
         />
@@ -52,7 +54,7 @@ export function ExpenseForm({ initial, onSubmit, onCancel }: ExpenseFormProps) {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelClass}>Amount (kr)</label>
+          <label className={labelClass}>{t("expenses.formAmount")}</label>
           <input
             className={inputClass}
             type="number"
@@ -65,7 +67,7 @@ export function ExpenseForm({ initial, onSubmit, onCancel }: ExpenseFormProps) {
           />
         </div>
         <div>
-          <label className={labelClass}>Date</label>
+          <label className={labelClass}>{t("expenses.formDate")}</label>
           <input
             className={inputClass}
             type="date"
@@ -83,15 +85,15 @@ export function ExpenseForm({ initial, onSubmit, onCancel }: ExpenseFormProps) {
           onChange={(e) => setRecurring(e.target.checked)}
           className="h-4 w-4 rounded border-neutral-300 dark:border-neutral-600"
         />
-        Recurring monthly expense
+        {t("expenses.formRecurringLabel")}
       </label>
 
       <div className="mt-2 flex justify-end gap-2">
         <button type="button" className={secondaryButtonClass} onClick={onCancel}>
-          Cancel
+          {t("common.cancel")}
         </button>
         <button type="submit" className={primaryButtonClass} disabled={saving}>
-          {initial ? "Save changes" : "Add expense"}
+          {initial ? t("expenses.formSubmitSave") : t("expenses.formSubmitAdd")}
         </button>
       </div>
     </form>

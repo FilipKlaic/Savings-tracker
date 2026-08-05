@@ -4,6 +4,7 @@ import { Card } from "../../components/Card";
 import { StatTile } from "../../components/StatTile";
 import { currentMonthKey, formatMonthLabel, formatSEK } from "../../lib/format";
 import { computeMonthSummary } from "../../lib/summary";
+import { useTranslation } from "../../lib/i18n";
 import { listIncomeEntries } from "../income/api";
 import { listExpenses } from "../expenses/api";
 import { getSettings } from "../settings/api";
@@ -17,6 +18,7 @@ export function DashboardPage() {
   const [contributions, setContributions] = useState<GoalContribution[]>([]);
   const [settings, setSettings] = useState<Settings>({ id: 1, savings_percentage: 20 });
   const [loading, setLoading] = useState(true);
+  const { t, language } = useTranslation();
 
   useEffect(() => {
     Promise.all([
@@ -46,41 +48,50 @@ export function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <h1 className="text-2xl font-semibold">{t("dashboard.title")}</h1>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          Overview for {formatMonthLabel(monthKey)}
+          {t("dashboard.subtitle", { month: formatMonthLabel(monthKey, language) })}
         </p>
       </div>
 
       {loading ? (
-        <p className="text-sm text-neutral-400">Loading…</p>
+        <p className="text-sm text-neutral-400">{t("common.loading")}</p>
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatTile label="Total income" value={formatSEK(summary.totalIncome)} />
             <StatTile
-              label="Total expenses"
-              value={formatSEK(summary.totalExpenses)}
-              accent="series-2"
+              label={t("dashboard.totalIncome")}
+              value={formatSEK(summary.totalIncome)}
+              info={t("dashboard.totalIncomeInfo")}
             />
             <StatTile
-              label="Allocated to savings"
+              label={t("dashboard.totalExpenses")}
+              value={formatSEK(summary.totalExpenses)}
+              accent="series-2"
+              info={t("dashboard.totalExpensesInfo")}
+            />
+            <StatTile
+              label={t("dashboard.allocatedToSavings")}
               value={formatSEK(summary.savingsAllocated)}
               accent="series-1"
+              info={t("dashboard.allocatedToSavingsInfo")}
               sublabel={
                 contributedThisMonth > 0
-                  ? `${formatSEK(contributedThisMonth)} moved to goals`
+                  ? t("dashboard.movedToGoals", {
+                      amount: formatSEK(contributedThisMonth),
+                    })
                   : undefined
               }
             />
             <StatTile
-              label="Discretionary left"
+              label={t("dashboard.discretionaryLeft")}
               value={formatSEK(summary.discretionary)}
               accent="series-3"
+              info={t("dashboard.discretionaryLeftInfo")}
             />
           </div>
 
-          <Card title="This month's breakdown">
+          <Card title={t("dashboard.breakdownTitle")}>
             <MonthlyBreakdownChart
               savings={summary.savingsAllocated}
               expenses={summary.totalExpenses}

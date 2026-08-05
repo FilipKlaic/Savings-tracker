@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "../lib/i18n";
 
 interface ModalProps {
   title: string;
@@ -7,6 +8,7 @@ interface ModalProps {
 }
 
 export function Modal({ title, onClose, children }: ModalProps) {
+  const { t } = useTranslation();
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
@@ -20,7 +22,7 @@ export function Modal({ title, onClose, children }: ModalProps) {
           <button
             onClick={onClose}
             className="rounded-full p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
-            aria-label="Close"
+            aria-label={t("modal.close")}
           >
             ✕
           </button>

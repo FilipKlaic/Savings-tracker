@@ -1,8 +1,9 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import type { IncomeCategory, IncomeEntry, NewIncomeEntry } from "../../types";
-import { INCOME_CATEGORIES } from "../../types";
+import { INCOME_CATEGORY_VALUES } from "../../types";
 import { todayIso } from "../../lib/format";
+import { useTranslation } from "../../lib/i18n";
 import {
   inputClass,
   labelClass,
@@ -24,6 +25,7 @@ export function IncomeForm({ initial, onSubmit, onCancel }: IncomeFormProps) {
   );
   const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
   const [saving, setSaving] = useState(false);
+  const { t } = useTranslation();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -42,12 +44,12 @@ export function IncomeForm({ initial, onSubmit, onCancel }: IncomeFormProps) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div>
-        <label className={labelClass}>Source</label>
+        <label className={labelClass}>{t("income.formSource")}</label>
         <input
           className={inputClass}
           value={source}
           onChange={(e) => setSource(e.target.value)}
-          placeholder="e.g. Acme AB"
+          placeholder={t("income.formSourcePlaceholder")}
           autoFocus
           required
         />
@@ -55,21 +57,21 @@ export function IncomeForm({ initial, onSubmit, onCancel }: IncomeFormProps) {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelClass}>Category</label>
+          <label className={labelClass}>{t("income.formCategory")}</label>
           <select
             className={inputClass}
             value={category}
             onChange={(e) => setCategory(e.target.value as IncomeCategory)}
           >
-            {INCOME_CATEGORIES.map((c) => (
-              <option key={c.value} value={c.value}>
-                {c.label}
+            {INCOME_CATEGORY_VALUES.map((value) => (
+              <option key={value} value={value}>
+                {t(`income.categories.${value}`)}
               </option>
             ))}
           </select>
         </div>
         <div>
-          <label className={labelClass}>Amount (kr)</label>
+          <label className={labelClass}>{t("income.formAmount")}</label>
           <input
             className={inputClass}
             type="number"
@@ -84,7 +86,7 @@ export function IncomeForm({ initial, onSubmit, onCancel }: IncomeFormProps) {
       </div>
 
       <div>
-        <label className={labelClass}>Date</label>
+        <label className={labelClass}>{t("income.formDate")}</label>
         <input
           className={inputClass}
           type="date"
@@ -96,10 +98,10 @@ export function IncomeForm({ initial, onSubmit, onCancel }: IncomeFormProps) {
 
       <div className="mt-2 flex justify-end gap-2">
         <button type="button" className={secondaryButtonClass} onClick={onCancel}>
-          Cancel
+          {t("common.cancel")}
         </button>
         <button type="submit" className={primaryButtonClass} disabled={saving}>
-          {initial ? "Save changes" : "Add income"}
+          {initial ? t("income.formSubmitSave") : t("income.formSubmitAdd")}
         </button>
       </div>
     </form>

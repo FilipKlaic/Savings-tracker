@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import type { Goal, NewGoal } from "../../types";
-import { todayIso } from "../../lib/format";
+import { formatSEK, todayIso } from "../../lib/format";
+import { useTranslation } from "../../lib/i18n";
 import {
   inputClass,
   labelClass,
@@ -20,16 +21,15 @@ export function GoalForm({ initial, onSubmit, onCancel }: GoalFormProps) {
   const [targetAmount, setTargetAmount] = useState(
     initial ? String(initial.target_amount) : "",
   );
-  const [currentAmount, setCurrentAmount] = useState(
-    initial ? String(initial.current_amount) : "0",
-  );
+  const [startingAmount, setStartingAmount] = useState("0");
   const [createdDate] = useState(initial?.created_date ?? todayIso());
   const [saving, setSaving] = useState(false);
+  const { t } = useTranslation();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const parsedTarget = Number(targetAmount);
-    const parsedCurrent = Number(currentAmount);
+    const parsedStarting = Number(startingAmount);
     if (!name.trim() || !Number.isFinite(parsedTarget) || parsedTarget <= 0) {
       return;
     }
@@ -38,8 +38,10 @@ export function GoalForm({ initial, onSubmit, onCancel }: GoalFormProps) {
       await onSubmit({
         name: name.trim(),
         target_amount: parsedTarget,
-        current_amount: Number.isFinite(parsedCurrent) ? parsedCurrent : 0,
         created_date: createdDate,
+        ...(initial
+          ? {}
+          : { current_amount: Number.isFinite(parsedStarting) ? parsedStarting : 0 }),
       });
     } finally {
       setSaving(false);
@@ -49,12 +51,12 @@ export function GoalForm({ initial, onSubmit, onCancel }: GoalFormProps) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div>
-        <label className={labelClass}>Goal name</label>
+        <label className={labelClass}>{t("goals.formName")}</label>
         <input
           className={inputClass}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. New camera lens"
+          placeholder={t("goals.formNamePlaceholder")}
           autoFocus
           required
         />
@@ -62,7 +64,7 @@ export function GoalForm({ initial, onSubmit, onCancel }: GoalFormProps) {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className={labelClass}>Target amount (kr)</label>
+          <label className={labelClass}>{t("goals.formTargetAmount")}</label>
           <input
             className={inputClass}
             type="number"
@@ -75,25 +77,42 @@ export function GoalForm({ initial, onSubmit, onCancel }: GoalFormProps) {
           />
         </div>
         <div>
-          <label className={labelClass}>Current progress (kr)</label>
-          <input
-            className={inputClass}
-            type="number"
-            min="0"
-            step="1"
-            value={currentAmount}
-            onChange={(e) => setCurrentAmount(e.target.value)}
-            placeholder="0"
-          />
+          {initial ? (
+            <>
+              <label className={labelClass}>{t("goals.formCurrentProgress")}</label>
+              <p className={`${inputClass} flex items-center bg-neutral-50 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-400`}>
+                {formatSEK(initial.current_amount)}
+              </p>
+            </>
+          ) : (
+            <>
+              <label className={labelClass}>{t("goals.formStartingAmount")}</label>
+              <input
+                className={inputClass}
+                type="number"
+                min="0"
+                step="1"
+                value={startingAmount}
+                onChange={(e) => setStartingAmount(e.target.value)}
+                placeholder="0"
+              />
+            </>
+          )}
         </div>
       </div>
 
+      {initial && (
+        <p className="-mt-2 text-xs text-neutral-400">
+          {t("goals.formCurrentProgressNote")}
+        </p>
+      )}
+
       <div className="mt-2 flex justify-end gap-2">
         <button type="button" className={secondaryButtonClass} onClick={onCancel}>
-          Cancel
+          {t("common.cancel")}
         </button>
         <button type="submit" className={primaryButtonClass} disabled={saving}>
-          {initial ? "Save changes" : "Create goal"}
+          {initial ? t("goals.formSubmitSave") : t("goals.formSubmitCreate")}
         </button>
       </div>
     </form>

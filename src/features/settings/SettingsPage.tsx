@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { Card } from "../../components/Card";
 import { primaryButtonClass } from "../../components/formStyles";
+import { useTranslation } from "../../lib/i18n";
 import { getSettings, updateSavingsPercentage } from "./api";
 
 export function SettingsPage() {
   const [percentage, setPercentage] = useState(20);
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     getSettings()
@@ -23,20 +25,19 @@ export function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold">Settings</h1>
+        <h1 className="text-2xl font-semibold">{t("settings.title")}</h1>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          Configure how your income is automatically allocated.
+          {t("settings.subtitle")}
         </p>
       </div>
 
-      <Card title="Savings rule" className="max-w-lg">
+      <Card title={t("settings.cardTitle")} className="max-w-lg">
         {loading ? (
-          <p className="text-sm text-neutral-400">Loading…</p>
+          <p className="text-sm text-neutral-400">{t("common.loading")}</p>
         ) : (
           <div className="flex flex-col gap-4">
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              Automatically set aside this percentage of every krona of income
-              toward savings, before discretionary spending.
+              {t("settings.description")}
             </p>
 
             <div className="flex items-center gap-4">
@@ -56,10 +57,10 @@ export function SettingsPage() {
 
             <div className="flex items-center gap-3">
               <button className={primaryButtonClass} onClick={handleSave}>
-                Save
+                {t("settings.save")}
               </button>
               {saved && (
-                <span className="text-sm text-emerald-500">Saved ✓</span>
+                <span className="text-sm text-emerald-500">{t("settings.saved")}</span>
               )}
             </div>
           </div>

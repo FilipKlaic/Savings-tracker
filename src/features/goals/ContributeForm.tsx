@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import type { Goal } from "../../types";
 import { formatSEK } from "../../lib/format";
+import { useTranslation } from "../../lib/i18n";
 import {
   inputClass,
   labelClass,
@@ -24,6 +25,7 @@ export function ContributeForm({
 }: ContributeFormProps) {
   const [amount, setAmount] = useState("");
   const [saving, setSaving] = useState(false);
+  const { t } = useTranslation();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -40,15 +42,14 @@ export function ContributeForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <p className="text-sm text-neutral-500 dark:text-neutral-400">
-        Currently{" "}
-        <span className="font-medium text-neutral-900 dark:text-neutral-100">
-          {formatSEK(goal.current_amount)}
-        </span>{" "}
-        of {formatSEK(goal.target_amount)}.
+        {t("goals.contributeCurrently", {
+          current: formatSEK(goal.current_amount),
+          target: formatSEK(goal.target_amount),
+        })}
       </p>
 
       <div>
-        <label className={labelClass}>Amount to add (kr)</label>
+        <label className={labelClass}>{t("goals.contributeAmountLabel")}</label>
         <input
           className={inputClass}
           type="number"
@@ -66,17 +67,17 @@ export function ContributeForm({
             className="mt-2 text-xs text-neutral-500 underline decoration-dotted hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
             onClick={() => setAmount(String(suggestedAmount))}
           >
-            Use remaining savings allocation ({formatSEK(suggestedAmount)})
+            {t("goals.contributeSuggestion", { amount: formatSEK(suggestedAmount) })}
           </button>
         )}
       </div>
 
       <div className="mt-2 flex justify-end gap-2">
         <button type="button" className={secondaryButtonClass} onClick={onCancel}>
-          Cancel
+          {t("common.cancel")}
         </button>
         <button type="submit" className={primaryButtonClass} disabled={saving}>
-          Add to goal
+          {t("goals.contributeSubmit")}
         </button>
       </div>
     </form>

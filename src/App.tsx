@@ -3,6 +3,7 @@ import type { ComponentType } from "react";
 import { Sidebar } from "./components/Sidebar";
 import type { NavKey } from "./lib/nav";
 import { useTheme } from "./lib/theme";
+import { useTranslation } from "./lib/i18n";
 import { DashboardPage } from "./features/dashboard/DashboardPage";
 import { IncomePage } from "./features/income/IncomePage";
 import { ExpensesPage } from "./features/expenses/ExpensesPage";
@@ -22,6 +23,7 @@ const PAGES: Record<NavKey, ComponentType> = {
 function App() {
   const [page, setPage] = useState<NavKey>("dashboard");
   const [theme, setTheme] = useTheme();
+  const { language, setLanguage } = useTranslation();
   const Page = PAGES[page];
 
   return (
@@ -31,6 +33,8 @@ function App() {
         onSelect={setPage}
         theme={theme}
         onThemeChange={setTheme}
+        language={language}
+        onLanguageChange={setLanguage}
       />
       <main className="flex-1 overflow-y-auto p-8">
         <div className="mx-auto max-w-5xl">

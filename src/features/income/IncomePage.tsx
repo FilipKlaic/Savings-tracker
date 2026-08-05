@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import type { IncomeEntry, NewIncomeEntry } from "../../types";
-import { INCOME_CATEGORIES } from "../../types";
 import { Card } from "../../components/Card";
 import { Modal } from "../../components/Modal";
 import { ConfirmDialog } from "../../components/ConfirmDialog";
@@ -10,6 +9,7 @@ import {
   inputClass,
 } from "../../components/formStyles";
 import { formatMonthLabel, formatSEK, monthKeyOf } from "../../lib/format";
+import { useTranslation } from "../../lib/i18n";
 import { IncomeForm } from "./IncomeForm";
 import {
   createIncomeEntry,
@@ -18,11 +18,8 @@ import {
   updateIncomeEntry,
 } from "./api";
 
-const categoryLabels = Object.fromEntries(
-  INCOME_CATEGORIES.map((c) => [c.value, c.label]),
-);
-
 export function IncomePage() {
+  const { t, language } = useTranslation();
   const [entries, setEntries] = useState<IncomeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalMode, setModalMode] = useState<"add" | IncomeEntry | null>(null);
@@ -80,13 +77,13 @@ export function IncomePage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Income</h1>
+          <h1 className="text-2xl font-semibold">{t("income.title")}</h1>
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            Track every payment that comes in.
+            {t("income.subtitle")}
           </p>
         </div>
         <button className={primaryButtonClass} onClick={() => setModalMode("add")}>
-          + Add income
+          {t("income.addButton")}
         </button>
       </div>
 
@@ -94,7 +91,7 @@ export function IncomePage() {
         <div className="flex flex-wrap gap-3">
           <input
             className={`${inputClass} max-w-xs`}
-            placeholder="Search by source…"
+            placeholder={t("income.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -103,10 +100,10 @@ export function IncomePage() {
             value={monthFilter}
             onChange={(e) => setMonthFilter(e.target.value)}
           >
-            <option value="all">All time</option>
+            <option value="all">{t("income.allTime")}</option>
             {months.map((month) => (
               <option key={month} value={month}>
-                {formatMonthLabel(month)}
+                {formatMonthLabel(month, language)}
               </option>
             ))}
           </select>
@@ -115,19 +112,19 @@ export function IncomePage() {
 
       <Card>
         {loading ? (
-          <p className="text-sm text-neutral-400">Loading…</p>
+          <p className="text-sm text-neutral-400">{t("common.loading")}</p>
         ) : entries.length === 0 ? (
-          <p className="text-sm text-neutral-400">No income entries yet.</p>
+          <p className="text-sm text-neutral-400">{t("income.emptyNone")}</p>
         ) : filteredEntries.length === 0 ? (
-          <p className="text-sm text-neutral-400">No income entries match your filters.</p>
+          <p className="text-sm text-neutral-400">{t("income.emptyFiltered")}</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-400 dark:border-neutral-800">
-                <th className="pb-2 font-medium">Date</th>
-                <th className="pb-2 font-medium">Source</th>
-                <th className="pb-2 font-medium">Category</th>
-                <th className="pb-2 text-right font-medium">Amount</th>
+                <th className="pb-2 font-medium">{t("income.colDate")}</th>
+                <th className="pb-2 font-medium">{t("income.colSource")}</th>
+                <th className="pb-2 font-medium">{t("income.colCategory")}</th>
+                <th className="pb-2 text-right font-medium">{t("income.colAmount")}</th>
                 <th className="pb-2"></th>
               </tr>
             </thead>
@@ -142,7 +139,7 @@ export function IncomePage() {
                   </td>
                   <td className="py-2.5 font-medium">{entry.source}</td>
                   <td className="py-2.5 text-neutral-500 dark:text-neutral-400">
-                    {categoryLabels[entry.category]}
+                    {t(`income.categories.${entry.category}`)}
                   </td>
                   <td className="py-2.5 text-right font-medium tabular-nums">
                     {formatSEK(entry.amount)}
@@ -153,13 +150,13 @@ export function IncomePage() {
                         className="text-sm text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
                         onClick={() => setModalMode(entry)}
                       >
-                        Edit
+                        {t("common.edit")}
                       </button>
                       <button
                         className={dangerTextClass}
                         onClick={() => setPendingDelete(entry)}
                       >
-                        Delete
+                        {t("common.delete")}
                       </button>
                     </div>
                   </td>
@@ -172,7 +169,7 @@ export function IncomePage() {
 
       {modalMode && (
         <Modal
-          title={modalMode === "add" ? "Add income" : "Edit income"}
+          title={modalMode === "add" ? t("income.modalAdd") : t("income.modalEdit")}
           onClose={() => setModalMode(null)}
         >
           <IncomeForm
@@ -185,8 +182,11 @@ export function IncomePage() {
 
       {pendingDelete && (
         <ConfirmDialog
-          title="Delete income entry"
-          message={`Delete "${pendingDelete.source}" (${formatSEK(pendingDelete.amount)})? This can't be undone.`}
+          title={t("income.deleteTitle")}
+          message={t("income.deleteMessage", {
+            source: pendingDelete.source,
+            amount: formatSEK(pendingDelete.amount),
+          })}
           onConfirm={handleDelete}
           onCancel={() => setPendingDelete(null)}
         />

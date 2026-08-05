@@ -1,3 +1,5 @@
+import { LOCALE_BY_LANGUAGE, type Language } from "./language";
+
 const sekFormatter = new Intl.NumberFormat("sv-SE", {
   style: "currency",
   currency: "SEK",
@@ -24,12 +26,18 @@ export function currentMonthKey(): string {
   return monthKeyOf(todayIso());
 }
 
-const monthLabelFormatter = new Intl.DateTimeFormat("en-GB", {
-  month: "short",
-  year: "numeric",
-});
+const monthLabelFormatters: Record<Language, Intl.DateTimeFormat> = {
+  en: new Intl.DateTimeFormat(LOCALE_BY_LANGUAGE.en, {
+    month: "short",
+    year: "numeric",
+  }),
+  sv: new Intl.DateTimeFormat(LOCALE_BY_LANGUAGE.sv, {
+    month: "short",
+    year: "numeric",
+  }),
+};
 
-export function formatMonthLabel(monthKey: string): string {
+export function formatMonthLabel(monthKey: string, language: Language = "en"): string {
   const [year, month] = monthKey.split("-").map(Number);
-  return monthLabelFormatter.format(new Date(year, month - 1, 1));
+  return monthLabelFormatters[language].format(new Date(year, month - 1, 1));
 }

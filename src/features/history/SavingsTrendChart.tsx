@@ -9,24 +9,26 @@ import {
 } from "recharts";
 import type { MonthSummary } from "../../types";
 import { formatMonthLabel, formatPercent } from "../../lib/format";
+import { useTranslation } from "../../lib/i18n";
 
 interface SavingsTrendChartProps {
   summaries: MonthSummary[];
 }
 
 export function SavingsTrendChart({ summaries }: SavingsTrendChartProps) {
+  const { t, language } = useTranslation();
   const data = summaries
     .slice()
     .reverse()
     .map((s) => ({
-      month: formatMonthLabel(s.monthKey),
+      month: formatMonthLabel(s.monthKey, language),
       rate: Math.round(s.savingsRate * 10) / 10,
     }));
 
   if (data.length === 0) {
     return (
       <div className="flex h-56 items-center justify-center text-sm text-neutral-400">
-        No history yet.
+        {t("history.emptyNone")}
       </div>
     );
   }
@@ -66,7 +68,7 @@ export function SavingsTrendChart({ summaries }: SavingsTrendChartProps) {
           <Line
             type="monotone"
             dataKey="rate"
-            name="Savings rate"
+            name={t("history.chartSeriesName")}
             stroke="var(--series-1)"
             strokeWidth={2}
             dot={{ r: 4, fill: "var(--series-1)", stroke: "var(--chart-surface)", strokeWidth: 2 }}

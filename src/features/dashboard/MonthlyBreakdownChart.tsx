@@ -1,5 +1,6 @@
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { formatSEK } from "../../lib/format";
+import { useTranslation } from "../../lib/i18n";
 
 interface MonthlyBreakdownChartProps {
   savings: number;
@@ -12,11 +13,20 @@ export function MonthlyBreakdownChart({
   expenses,
   discretionary,
 }: MonthlyBreakdownChartProps) {
+  const { t } = useTranslation();
   const data = [
-    { name: "Savings", value: Math.max(savings, 0), color: "var(--series-1)" },
-    { name: "Expenses", value: Math.max(expenses, 0), color: "var(--series-2)" },
     {
-      name: "Discretionary",
+      name: t("dashboard.chartSavings"),
+      value: Math.max(savings, 0),
+      color: "var(--series-1)",
+    },
+    {
+      name: t("dashboard.chartExpenses"),
+      value: Math.max(expenses, 0),
+      color: "var(--series-2)",
+    },
+    {
+      name: t("dashboard.chartDiscretionary"),
       value: Math.max(discretionary, 0),
       color: "var(--series-3)",
     },
@@ -28,7 +38,7 @@ export function MonthlyBreakdownChart({
     <div className="h-64 w-full">
       {isEmpty ? (
         <div className="flex h-full items-center justify-center text-sm text-neutral-400">
-          No data for this month yet.
+          {t("dashboard.noDataThisMonth")}
         </div>
       ) : (
         <ResponsiveContainer width="100%" height="100%">

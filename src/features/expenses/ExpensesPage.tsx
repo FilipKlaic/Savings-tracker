@@ -10,6 +10,7 @@ import {
   inputClass,
 } from "../../components/formStyles";
 import { formatMonthLabel, formatSEK, monthKeyOf } from "../../lib/format";
+import { useTranslation } from "../../lib/i18n";
 import { ExpenseForm } from "./ExpenseForm";
 import { getCarryOverCandidates, toCarryOverInput } from "./carryOver";
 import {
@@ -27,6 +28,7 @@ export function ExpensesPage() {
   const [monthFilter, setMonthFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [carryingOver, setCarryingOver] = useState(false);
+  const { t, language } = useTranslation();
 
   async function refresh() {
     setExpenses(await listExpenses());
@@ -95,13 +97,13 @@ export function ExpensesPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Expenses</h1>
+          <h1 className="text-2xl font-semibold">{t("expenses.title")}</h1>
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            Keep track of fixed and one-time costs.
+            {t("expenses.subtitle")}
           </p>
         </div>
         <button className={primaryButtonClass} onClick={() => setModalMode("add")}>
-          + Add expense
+          {t("expenses.addButton")}
         </button>
       </div>
 
@@ -109,19 +111,22 @@ export function ExpensesPage() {
         <Card className="border-neutral-300 dark:border-neutral-700">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-neutral-600 dark:text-neutral-300">
-              You have {carryOverCandidates.length} recurring expense
-              {carryOverCandidates.length === 1 ? "" : "s"} not yet added this
-              month:{" "}
-              <span className="font-medium text-neutral-900 dark:text-neutral-100">
-                {carryOverCandidates.map((c) => c.name).join(", ")}
-              </span>
+              {t(
+                carryOverCandidates.length === 1
+                  ? "expenses.carryOverOne"
+                  : "expenses.carryOverMany",
+                {
+                  count: carryOverCandidates.length,
+                  names: carryOverCandidates.map((c) => c.name).join(", "),
+                },
+              )}
             </p>
             <button
               className={secondaryButtonClass}
               onClick={handleCarryOverAll}
               disabled={carryingOver}
             >
-              Add to this month
+              {t("expenses.carryOverButton")}
             </button>
           </div>
         </Card>
@@ -131,7 +136,7 @@ export function ExpensesPage() {
         <div className="flex flex-wrap gap-3">
           <input
             className={`${inputClass} max-w-xs`}
-            placeholder="Search by name…"
+            placeholder={t("expenses.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -140,10 +145,10 @@ export function ExpensesPage() {
             value={monthFilter}
             onChange={(e) => setMonthFilter(e.target.value)}
           >
-            <option value="all">All time</option>
+            <option value="all">{t("expenses.allTime")}</option>
             {months.map((month) => (
               <option key={month} value={month}>
-                {formatMonthLabel(month)}
+                {formatMonthLabel(month, language)}
               </option>
             ))}
           </select>
@@ -152,19 +157,19 @@ export function ExpensesPage() {
 
       <Card>
         {loading ? (
-          <p className="text-sm text-neutral-400">Loading…</p>
+          <p className="text-sm text-neutral-400">{t("common.loading")}</p>
         ) : expenses.length === 0 ? (
-          <p className="text-sm text-neutral-400">No expenses recorded yet.</p>
+          <p className="text-sm text-neutral-400">{t("expenses.emptyNone")}</p>
         ) : filteredExpenses.length === 0 ? (
-          <p className="text-sm text-neutral-400">No expenses match your filters.</p>
+          <p className="text-sm text-neutral-400">{t("expenses.emptyFiltered")}</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-400 dark:border-neutral-800">
-                <th className="pb-2 font-medium">Date</th>
-                <th className="pb-2 font-medium">Name</th>
-                <th className="pb-2 font-medium">Type</th>
-                <th className="pb-2 text-right font-medium">Amount</th>
+                <th className="pb-2 font-medium">{t("expenses.colDate")}</th>
+                <th className="pb-2 font-medium">{t("expenses.colName")}</th>
+                <th className="pb-2 font-medium">{t("expenses.colType")}</th>
+                <th className="pb-2 text-right font-medium">{t("expenses.colAmount")}</th>
                 <th className="pb-2"></th>
               </tr>
             </thead>
@@ -181,11 +186,11 @@ export function ExpensesPage() {
                   <td className="py-2.5">
                     {expense.recurring ? (
                       <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-                        Recurring
+                        {t("expenses.recurring")}
                       </span>
                     ) : (
                       <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">
-                        One-time
+                        {t("expenses.oneTime")}
                       </span>
                     )}
                   </td>
@@ -198,13 +203,13 @@ export function ExpensesPage() {
                         className="text-sm text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
                         onClick={() => setModalMode(expense)}
                       >
-                        Edit
+                        {t("common.edit")}
                       </button>
                       <button
                         className={dangerTextClass}
                         onClick={() => setPendingDelete(expense)}
                       >
-                        Delete
+                        {t("common.delete")}
                       </button>
                     </div>
                   </td>
@@ -217,7 +222,7 @@ export function ExpensesPage() {
 
       {modalMode && (
         <Modal
-          title={modalMode === "add" ? "Add expense" : "Edit expense"}
+          title={modalMode === "add" ? t("expenses.modalAdd") : t("expenses.modalEdit")}
           onClose={() => setModalMode(null)}
         >
           <ExpenseForm
@@ -230,8 +235,11 @@ export function ExpensesPage() {
 
       {pendingDelete && (
         <ConfirmDialog
-          title="Delete expense"
-          message={`Delete "${pendingDelete.name}" (${formatSEK(pendingDelete.amount)})? This can't be undone.`}
+          title={t("expenses.deleteTitle")}
+          message={t("expenses.deleteMessage", {
+            name: pendingDelete.name,
+            amount: formatSEK(pendingDelete.amount),
+          })}
           onConfirm={handleDelete}
           onCancel={() => setPendingDelete(null)}
         />

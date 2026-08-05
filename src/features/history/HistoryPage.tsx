@@ -3,6 +3,7 @@ import type { Expense, IncomeEntry, MonthSummary, Settings } from "../../types";
 import { Card } from "../../components/Card";
 import { formatMonthLabel, formatPercent, formatSEK } from "../../lib/format";
 import { computeMonthSummary, listMonthKeys } from "../../lib/summary";
+import { useTranslation } from "../../lib/i18n";
 import { listIncomeEntries } from "../income/api";
 import { listExpenses } from "../expenses/api";
 import { getSettings } from "../settings/api";
@@ -11,6 +12,7 @@ import { SavingsTrendChart } from "./SavingsTrendChart";
 export function HistoryPage() {
   const [summaries, setSummaries] = useState<MonthSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t, language } = useTranslation();
 
   useEffect(() => {
     Promise.all([listIncomeEntries(), listExpenses(), getSettings()]).then(
@@ -29,33 +31,33 @@ export function HistoryPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold">History</h1>
+        <h1 className="text-2xl font-semibold">{t("history.title")}</h1>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          How your savings rate has moved over time.
+          {t("history.subtitle")}
         </p>
       </div>
 
       {loading ? (
-        <p className="text-sm text-neutral-400">Loading…</p>
+        <p className="text-sm text-neutral-400">{t("common.loading")}</p>
       ) : (
         <>
-          <Card title="Savings rate trend">
+          <Card title={t("history.trendTitle")}>
             <SavingsTrendChart summaries={summaries} />
           </Card>
 
           <Card>
             {summaries.length === 0 ? (
-              <p className="text-sm text-neutral-400">No history yet.</p>
+              <p className="text-sm text-neutral-400">{t("history.emptyNone")}</p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-400 dark:border-neutral-800">
-                    <th className="pb-2 font-medium">Month</th>
-                    <th className="pb-2 text-right font-medium">Income</th>
-                    <th className="pb-2 text-right font-medium">Expenses</th>
-                    <th className="pb-2 text-right font-medium">Savings</th>
-                    <th className="pb-2 text-right font-medium">Discretionary</th>
-                    <th className="pb-2 text-right font-medium">Rate</th>
+                    <th className="pb-2 font-medium">{t("history.colMonth")}</th>
+                    <th className="pb-2 text-right font-medium">{t("history.colIncome")}</th>
+                    <th className="pb-2 text-right font-medium">{t("history.colExpenses")}</th>
+                    <th className="pb-2 text-right font-medium">{t("history.colSavings")}</th>
+                    <th className="pb-2 text-right font-medium">{t("history.colDiscretionary")}</th>
+                    <th className="pb-2 text-right font-medium">{t("history.colRate")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -65,7 +67,7 @@ export function HistoryPage() {
                       className="border-b border-neutral-100 last:border-0 dark:border-neutral-800/60"
                     >
                       <td className="py-2.5 font-medium">
-                        {formatMonthLabel(summary.monthKey)}
+                        {formatMonthLabel(summary.monthKey, language)}
                       </td>
                       <td className="py-2.5 text-right tabular-nums">
                         {formatSEK(summary.totalIncome)}
